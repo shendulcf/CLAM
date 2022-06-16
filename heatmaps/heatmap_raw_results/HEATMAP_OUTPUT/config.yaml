@@ -1,0 +1,50 @@
+data_arguments:
+  data_dir: heatmaps/demo/slides/
+  data_dir_key: source
+  label_dict:
+    LSCC: 1
+    LUAD: 0
+    TCGA: 2
+  preset: presets/bwh_biopsy.csv
+  process_list: myself.csv
+  slide_ext: .svs
+exp_arguments:
+  batch_size: 384
+  n_classes: 2
+  production_save_dir: heatmaps/heatmap_production_results
+  raw_save_dir: heatmaps/heatmap_raw_results
+  save_exp_code: HEATMAP_OUTPUT
+heatmap_arguments:
+  alpha: 0.4
+  binarize: false
+  binary_thresh: -1
+  blank_canvas: false
+  blur: false
+  calc_heatmap: true
+  cmap: jet
+  custom_downsample: 1
+  save_ext: jpg
+  save_orig: true
+  use_center_shift: true
+  use_ref_scores: true
+  use_roi: false
+  vis_level: 1
+model_arguments:
+  ckpt_path: heatmaps/demo/ckpts/s_0_checkpoint.pt
+  drop_out: true
+  initiate_fn: initiate_model
+  model_size: small
+  model_type: clam_sb
+  n_classes: 2
+patching_arguments:
+  custom_downsample: 1
+  overlap: 0.5
+  patch_level: 0
+  patch_size: 256
+sample_arguments:
+  samples:
+  - k: 15
+    mode: topk
+    name: topk_high_attention
+    sample: true
+    seed: 1

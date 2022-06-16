@@ -16,15 +16,16 @@ data_arguments:
   # column name for key in data_dir (if a dict mapping is used)
   data_dir_key: source
   # csv list containing slide_ids (can additionally have seg/patch paramters, class labels, etc.)
-  process_list: heatmap_demo_dataset.csv
+  process_list: myself.csv # heatmap_demo_dataset.csv ------------------------modified
   # preset file for segmentation/patching
-  preset: presets/bwh_biopsy.csv
+  preset: presets/bwh_biopsy.csv #presets/bwh_biopsy.csv -------------------------modified
   # file extention for slides
   slide_ext: .svs
   # label dictionary for str: interger mapping (optional)
   label_dict:
     LUAD: 0
-    LSCC: 1                        
+    LSCC: 1 
+    TCGA: 2                       
 patching_arguments:
   # arguments for patching
   patch_size: 256

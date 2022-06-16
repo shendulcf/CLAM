@@ -86,8 +86,10 @@ def summary(model, loader, args):
         error = calculate_error(Y_hat, label)
         test_error += error
 
-    del data
+    # del data
+    print(len(loader))
     test_error /= len(loader)
+    
 
     aucs = []
     if len(np.unique(all_labels)) == 1:
