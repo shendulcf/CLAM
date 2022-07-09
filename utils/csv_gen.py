@@ -25,9 +25,10 @@ def calss2_datacsv_gen(path):
     dataframe = pd.DataFrame({'pid':name_list,'label':label_list})
     dataframe.to_csv('train.csv',index=False,sep=',')
 
-def csv_gen_test(path):
+def csv_gen_test(path,result_dir):
 
     slide_list = os.listdir(path)
+    slide_list.sort()
     case_name,slide_name,label_name = [],[],[]
     # print(slide_list)
     for slide in slide_list:
@@ -46,22 +47,22 @@ def csv_gen_test(path):
             "label":label_name
     }
     frame = pd.DataFrame(data)
-    frame.to_csv('data/RESULTS_DIRECTORY/step_3.csv')
+    frame.to_csv(result_dir)
 
 
-def csv_gen_step1():
+def csv_gen_step1(csv_dir,result_dir):
             
-    df = pd.read_csv(r'data/RESULTS_DIRECTORY/process_list_autogen.csv') # 这个是上一步生成的文件
+    df = pd.read_csv(csv_dir) # 这个是上一步生成的csv文件
     ids1 = [i[:-4] for i in df.slide_id]
-    ids2 = [i[:-3] for i in os.listdir(r'data/RESULTS_DIRECTORY/patches')]
+    ids2 = [i[:-3] for i in os.listdir(r'data2/RESULTS_DIRECTORY/patches')]
     df['slide_id'] = ids1
     ids = df['slide_id'].isin(ids2)
     sum(ids)
-    df.loc[ids].to_csv('data/RESULTS_DIRECTORY/Step_2.csv',index=False)
+    df.loc[ids].to_csv(result_dir,index=False)  # data2/RESULTS_DIRECTORY/step_2.csv
 
-def csv_gen_step2():
+def csv_gen_step2(csv_dir,result_dir):
 
-    df = pd.read_csv('/media/yuansh/14THHD/CLAM/DataSet/cohort.csv')
+    df = pd.read_csv(csv_dir)
     df = df[['Case_ID','Slide_ID','Specimen_Type']]
     ids1 = [i for i in df.Slide_ID]
     ids2 = [i[:-3] for i in os.listdir('toy_test/patches/')]
@@ -69,17 +70,22 @@ def csv_gen_step2():
     sum(ids)
     df = df.loc[ids]
     df.columns = ['case_id','slide_id','label']
-    df.to_csv('/media/yuansh/14THHD/CLAM/Step_3.csv',index=False)
+    df.to_csv(result_dir,index=False)
 
 
 
-    
     
     
 
 if __name__ == '__main__':
-    path = r'/home/sci/PycharmProjects/chaofan/projects/Datasets/tcga_test'
+    path = r'data2/DATA_DIRECTORY'
+    csv_dir = r'data2/RESULTS_DIRECTORY/process_list_autogen.csv'
+    result_dir = r'data2/RESULTS_DIRECTORY/step_3.csv'
+    print(os.listdir(path))
     
     print(os.getcwd())
-    # csv_gen_step1()
-    csv_gen_test(path)
+    # csv_gen_step1(csv_dir,result_dir)
+    csv_gen_test(path,result_dir)
+    # csv_gen_step2(csv)
+    
+    
