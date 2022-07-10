@@ -80,12 +80,13 @@ def csv_gen_step2(csv_dir,result_dir):
 if __name__ == '__main__':
     path = r'data2/DATA_DIRECTORY'
     csv_dir = r'data2/RESULTS_DIRECTORY/process_list_autogen.csv'
-    result_dir = r'data2/RESULTS_DIRECTORY/step_3.csv'
+    result_dir = r'data2/RESULTS_DIRECTORY/step_2.csv'
+    result2_dir = r'data2/RESULTS_DIRECTORY/step_3.csv'
     print(os.listdir(path))
     
     print(os.getcwd())
-    # csv_gen_step1(csv_dir,result_dir)
-    csv_gen_test(path,result_dir)
+    csv_gen_step1(csv_dir,result_dir)
+    csv_gen_test(path,result2_dir)
     # csv_gen_step2(csv)
     
     
