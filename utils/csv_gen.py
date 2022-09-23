@@ -54,7 +54,7 @@ def csv_gen_step1(csv_dir,result_dir):
             
     df = pd.read_csv(csv_dir) # 这个是上一步生成的csv文件
     ids1 = [i[:-4] for i in df.slide_id]
-    ids2 = [i[:-3] for i in os.listdir(r'data2/RESULTS_DIRECTORY/patches')]
+    ids2 = [i[:-3] for i in os.listdir(r'data_tcga_crc/RESULTS_DIRECTORY/patches')]
     df['slide_id'] = ids1
     ids = df['slide_id'].isin(ids2)
     sum(ids)
@@ -78,15 +78,15 @@ def csv_gen_step2(csv_dir,result_dir):
     
 
 if __name__ == '__main__':
-    path = r'data2/DATA_DIRECTORY'
-    csv_dir = r'data2/RESULTS_DIRECTORY/process_list_autogen.csv'
-    result_dir = r'data2/RESULTS_DIRECTORY/step_2.csv'
-    result2_dir = r'data2/RESULTS_DIRECTORY/step_3.csv'
+    path = r'data_tcga_crc/DATA_DIRECTORY'
+    csv_dir = r'data_tcga_crc/RESULTS_DIRECTORY/process_list_autogen.csv'
+    result_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_2.csv'
+    result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3.csv'
     print(os.listdir(path))
     
     print(os.getcwd())
     csv_gen_step1(csv_dir,result_dir)
-    csv_gen_test(path,result2_dir)
+    # csv_gen_test(path,result2_dir)
     # csv_gen_step2(csv)
     
     
