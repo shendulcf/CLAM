@@ -3,4 +3,7 @@ __pycache__/
 data/
 heatmaps/demo
 data2
-data_tcga_crc
+data_tcga_crc/DATA_DIRECTORY
+data_tcga_crc/RESULTS_DIRECTORY/masks
+data_tcga_crc/RESULTS_DIRECTORY/patches
+data_tcga_crc/RESULTS_DIRECTORY/stitches

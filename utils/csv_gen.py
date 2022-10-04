@@ -34,9 +34,11 @@ def csv_gen_test(path,result_dir):
     for slide in slide_list:
         slide_n, suffix = os.path.splitext(slide)
         if slide[13] == '1':
-            label = "normal_tissue"
+            # label = "normal_tissue"
+            label = 'class_0'
         else:
-            label = "tumor_tissue"
+            # label = "tumor_tissue"
+            label = 'class_1'
         case_n = slide_n[:12]
         case_name.append(case_n)
         slide_name.append(slide_n)
@@ -84,12 +86,12 @@ if __name__ == '__main__':
 
     csv_dir = r'data_tcga_crc/RESULTS_DIRECTORY/process_list_autogen.csv'
     result_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_2.csv'
-    result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3.csv'
+    result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3_fl.csv'
     print(os.listdir(path))
     
     print(os.getcwd())
     # csv_gen_step1(csv_dir,result_dir)
-    csv_gen_test(path2,result2_dir)
+    csv_gen_test(fpath,result2_dir)
     # csv_gen_step2(csv)
     
     
