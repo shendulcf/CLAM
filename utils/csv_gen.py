@@ -79,14 +79,17 @@ def csv_gen_step2(csv_dir,result_dir):
 
 if __name__ == '__main__':
     path = r'data_tcga_crc/DATA_DIRECTORY'
+    path2 = r'/home/sci/Disk2/tcga_crc/DATA_DIRECTORY'
+    fpath = r'/home/sci/Disk2/tcga_crc/FEATURES_DIRECTORY'
+
     csv_dir = r'data_tcga_crc/RESULTS_DIRECTORY/process_list_autogen.csv'
     result_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_2.csv'
     result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3.csv'
     print(os.listdir(path))
     
     print(os.getcwd())
-    csv_gen_step1(csv_dir,result_dir)
-    # csv_gen_test(path,result2_dir)
+    # csv_gen_step1(csv_dir,result_dir)
+    csv_gen_test(path2,result2_dir)
     # csv_gen_step2(csv)
     
     
