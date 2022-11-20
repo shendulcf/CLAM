@@ -6,8 +6,8 @@ import shutil
 # go to one of it
 # move files in the folder to dst 
 
-src_base_dir = r"/home/sci/Disk2/TCGA_CRC"
-dst = r"/home/sci/Disk2/tcga_crc"
+src_base_dir = r"/home/sci/Disk2/TCGA-BRCA/WSI"
+dst = r"/home/sci/Disk2/tcga_brca(1)"
 for folder in os.listdir(src_base_dir):
     print(folder)
     filePath = src_base_dir + '\\'  + folder
@@ -20,3 +20,5 @@ for folder in os.listdir(src_base_dir):
         print(src2)
         # shutil.move(src, dst)
         shutil.copy(src2, dst)
+
+# all_slides = glob.glob(join(path_base, '*/*.svs'))

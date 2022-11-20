@@ -34,11 +34,11 @@ def csv_gen_test(path,result_dir):
     for slide in slide_list:
         slide_n, suffix = os.path.splitext(slide)
         if slide[13] == '1':
-            # label = "normal_tissue"
-            label = 'class_0'
+            label = "normal_tissue"
+            # label = 'class_0'
         else:
-            # label = "tumor_tissue"
-            label = 'class_1'
+            label = "tumor_tissue"
+            # label = 'class_1'
         case_n = slide_n[:12]
         case_name.append(case_n)
         slide_name.append(slide_n)
@@ -56,7 +56,7 @@ def csv_gen_step1(csv_dir,result_dir):
             
     df = pd.read_csv(csv_dir) # 这个是上一步生成的csv文件
     ids1 = [i[:-4] for i in df.slide_id]
-    ids2 = [i[:-3] for i in os.listdir(r'data_tcga_crc/RESULTS_DIRECTORY/patches')]
+    ids2 = [i[:-3] for i in os.listdir(r'/home/sci/Disk2/tcga_brca/RESULTS_DIRECTORY/patches')]
     df['slide_id'] = ids1
     ids = df['slide_id'].isin(ids2)
     sum(ids)
@@ -80,18 +80,21 @@ def csv_gen_step2(csv_dir,result_dir):
     
 
 if __name__ == '__main__':
-    path = r'data_tcga_crc/DATA_DIRECTORY'
-    path2 = r'/home/sci/Disk2/tcga_crc/DATA_DIRECTORY'
-    fpath = r'/home/sci/Disk2/tcga_crc/FEATURES_DIRECTORY'
+    # path = r'data_tcga_crc/DATA_DIRECTORY'
+    # path2 = r'/home/sci/Disk2/tcga_crc/DATA_DIRECTORY'
+    # fpath = r'/home/sci/Disk2/tcga_crc/FEATURES_DIRECTORY'
 
-    csv_dir = r'data_tcga_crc/RESULTS_DIRECTORY/process_list_autogen.csv'
-    result_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_2.csv'
-    result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3_fl.csv'
-    print(os.listdir(path))
+    # csv_dir = r'data_tcga_crc/RESULTS_DIRECTORY/process_list_autogen.csv'
+    # result_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_2.csv'
+    # result2_dir = r'data_tcga_crc/RESULTS_DIRECTORY/step_3_fl.csv'
+    # print(os.listdir(path))
     
-    print(os.getcwd())
-    # csv_gen_step1(csv_dir,result_dir)
-    csv_gen_test(fpath,result2_dir)
-    # csv_gen_step2(csv)
+    # print(os.getcwd())
+    # # csv_gen_step1(csv_dir,result_dir)
+    # csv_gen_test(fpath,result2_dir)
+    # # csv_gen_step2(csv)
     
-    
+    path = r'/home/sci/Disk2/tcga_brca/WSI'
+    csv_dir = '/home/sci/Disk2/tcga_brca/RESULTS_DIRECTORY/process_list_autogen.csv'
+    result_dir = '/home/sci/Disk2/tcga_brca/RESULTS_DIRECTORY/step_3.csv'
+    csv_gen_test(path,result_dir)
