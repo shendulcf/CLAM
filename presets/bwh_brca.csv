@@ -1,0 +1,2 @@
+seg_level,sthresh,mthresh,close,use_otsu,keep_ids,exclude_ids,a_t,a_h,max_n_holes,vis_level,line_thickness,use_padding,contour_fn
+-1,8,7,4,FALSE,none,none,100,16,8,-1,250,TRUE,four_pt
