@@ -1,0 +1,1 @@
+{'task': 'task_1_tumor_vs_normal', 'split': 'test', 'save_dir': './eval_results/EVAL_tcga-brca_cv', 'models_dir': 'results/tcga-brca', 'model_type': 'clam_sb', 'drop_out': True, 'model_size': 'small'}
