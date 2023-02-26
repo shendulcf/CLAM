@@ -18,14 +18,16 @@ data_arguments:
   # csv list containing slide_ids (can additionally have seg/patch paramters, class labels, etc.)
   process_list: myself.csv # heatmap_demo_dataset.csv ------------------------modified
   # preset file for segmentation/patching
-  preset: presets/bwh_biopsy.csv #presets/bwh_biopsy.csv -------------------------modified
+  preset: presets/bwh_brca.csv #presets/bwh_biopsy.csv -------------------------modified
   # file extention for slides
   slide_ext: .svs
   # label dictionary for str: interger mapping (optional)
   label_dict:
-    LUAD: 0
-    LSCC: 1 
-    TCGA: 2                       
+    # LUAD: 0
+    # LSCC: 1 
+    # TCGA: 2
+    tumor: 1
+    normal: 0                       
 patching_arguments:
   # arguments for patching
   patch_size: 256
@@ -34,7 +36,7 @@ patching_arguments:
   custom_downsample: 1
 model_arguments: 
   # arguments for initializing model from checkpoint
-  ckpt_path: heatmaps/demo/ckpts/s_0_checkpoint.pt
+  ckpt_path: heatmaps/demo/ckpts/s_4_checkpoint.pt
   model_type: clam_sb # see utils/eval_utils/
   initiate_fn: initiate_model # see utils/eval_utils/
   model_size: small
