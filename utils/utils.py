@@ -95,10 +95,10 @@ def print_network(net):
 
 def generate_split(cls_ids, val_num, test_num, samples, n_splits = 5,
 	seed = 7, label_frac = 1.0, custom_test_ids = None):
-	indices = np.arange(samples).astype(int)
+	indices = np.arange(samples).astype(int) # samples patients or slide counts
 	
 	if custom_test_ids is not None:
-		indices = np.setdiff1d(indices, custom_test_ids)
+		indices = np.setdiff1d(indices, custom_test_ids) # setdiff1d(x,y) return in x notin y 
 
 	np.random.seed(seed)
 	for i in range(n_splits):

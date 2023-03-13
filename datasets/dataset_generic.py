@@ -38,7 +38,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		label_dict = {},
 		filter_dict = {},
 		ignore=[],
-		patient_strat=False,
+		patient_strat=False, # 
 		label_col = None,
 		patient_voting = 'max',
 		):
@@ -81,14 +81,14 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 	def cls_ids_prep(self):
 		# store ids corresponding each class at the patient or case level
-		self.patient_cls_ids = [[] for i in range(self.num_classes)]		
+		self.patient_cls_ids = [[] for i in range(self.num_classes)]# 列表列表	
 		for i in range(self.num_classes):
-			self.patient_cls_ids[i] = np.where(self.patient_data['label'] == i)[0]
-
+			self.patient_cls_ids[i] = np.where(self.patient_data['label'] == i)[0] # 返回标签为i的病人id
+		# np.where(condition,x,y) if condition then x else y, only condition return coodiation
 		# store ids corresponding each class at the slide level
 		self.slide_cls_ids = [[] for i in range(self.num_classes)]
 		for i in range(self.num_classes):
-			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0]
+			self.slide_cls_ids[i] = np.where(self.slide_data['label'] == i)[0] # 返回标签为i的切片id
 
 	def patient_data_prep(self, patient_voting='max'):
 		patients = np.unique(np.array(self.slide_data['case_id'])) # get unique patients
@@ -110,17 +110,17 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 	@staticmethod
 	def df_prep(data, label_dict, ignore, label_col):
-		if label_col != 'label':
+		if label_col != 'label': # 保证标签列索引为‘label’
 			data['label'] = data[label_col].copy()
 
 		mask = data['label'].isin(ignore)
 		data = data[~mask]
-		data.reset_index(drop=True, inplace=True)
+		data.reset_index(drop=True, inplace=True) # remove the ignore class label and reset index 
 		for i in data.index:
-			key = data.loc[i, 'label']
+			key = data.loc[i, 'label'] 
 			data.at[i, 'label'] = label_dict[key]
 
-		return data
+		return data # data key in label_dict to value
 
 	def filter_df(self, df, filter_dict={}):
 		if len(filter_dict) > 0:
