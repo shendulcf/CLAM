@@ -39,7 +39,7 @@ def main(args):
     all_val_auc = []
     all_test_acc = []
     all_val_acc = []
-    folds = np.arange(start, end)
+    folds = np.arange(start, end) # folds = list[0,1,...,k-1]
     for i in folds:
         seed_torch(args.seed)
         train_dataset, val_dataset, test_dataset = dataset.return_splits(from_id=False, 
