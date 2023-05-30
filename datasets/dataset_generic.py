@@ -23,7 +23,7 @@ def save_splits(split_datasets, column_keys, filename, boolean_style=False):
 		df = pd.concat(splits, ignore_index = True, axis=0)
 		index = df.values.tolist()
 		one_hot = np.eye(len(split_datasets)).astype(bool)
-		bool_array = np.repeat(one_hot, [len(dset) for dset in split_datasets], axis=0)
+		bool_array = np.repeat(one_hot, [len(dset) for dset in split_datasets], axis=0) # 生成对应数量len(dset)的单位矩阵
 		df = pd.DataFrame(bool_array, index=index, columns = ['train', 'val', 'test'])
 
 	df.to_csv(filename)
@@ -36,8 +36,8 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		seed = 7, 
 		print_info = True,
 		label_dict = {},
-		filter_dict = {},
-		ignore=[],
+		filter_dict = {}, # filter the dataset using the filter function
+		ignore=[], # 忽略标签
 		patient_strat=False, # 
 		label_col = None,
 		patient_voting = 'max',
@@ -79,7 +79,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		if print_info:
 			self.summarize()
 
-	def cls_ids_prep(self):
+	def cls_ids_prep(self):  # sourcery skip: for-index-underscore
 		# store ids corresponding each class at the patient or case level
 		self.patient_cls_ids = [[] for i in range(self.num_classes)]# 列表列表	
 		for i in range(self.num_classes):
@@ -186,6 +186,22 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		else:
 			self.train_ids, self.val_ids, self.test_ids = ids
 
+## ----> 该函数根据给定的切分键（默认为“train”）从DataFrame中获取切分数据
+	'''
+	函数接受以下参数：
+
+	all_splits:包含所有切分的字典或映射。每个切分由一个键（如“train”、“val”、“test”等）和一个包含相应切分数据的DataFrame组成。
+	split_key:要获取的切分的键，默认为“train”。
+	函数的步骤如下：
+
+	从all_splits中根据给定的split_key获取切分数据。
+	删除包含NaN值的行，并重新设置索引。
+	如果切分数据的长度大于0，则根据切分数据中的slide_id筛选slide_data中的相应行，并重新设置索引。
+	创建一个Generic_Split对象，将筛选后的df_slice、数据目录（data_dir）和类别数量（num_classes）作为参数传递给构造函数。
+	如果切分数据的长度为0，将切分设为None。
+	返回切分对象。
+	总之，该函数根据给定的切分键从DataFrame中获取相应的切分数据，并将其作为Generic_Split对象返回。
+	'''
 	def get_split_from_df(self, all_splits, split_key='train'):
 		split = all_splits[split_key]
 		split = split.dropna().reset_index(drop=True)
@@ -198,6 +214,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 			split = None
 		
 		return split
+
 
 	def get_merged_split_from_df(self, all_splits, split_keys=['train']):
 		merged_split = []
@@ -215,7 +232,18 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		
 		return split
 
+	## ----> return_splits是一个方法，用于返回切分后的数据集
+	'''
+	该方法接受以下参数：
 
+	from_id:一个布尔值，表示是否从幻灯片ID列表中获取切分后的数据集。
+	csv_path:CSV文件的路径，可选参数，默认为None。
+	在方法中，根据from_id的值，执行以下操作"
+
+	如果from_id为True，根据训练集、验证集和测试集的幻灯片ID获取相应的数据，并将其重置索引后创建Generic_Split对象，分别存储在train_split、val_split和test_split中。如果对应的幻灯片ID列表为空，相应的数据集对象为None。
+	如果from_id为False，根据提供的CSV文件路径csv_path加载数据，并创建Generic_Split对象，分别存储在train_split、val_split和test_split中。如果CSV文件中不存在对应的数据，相应的数据集对象为None。
+	最后，方法返回train_split、val_split和test_split，即切分后的训练集、验证集和测试集数据集对象
+	'''
 	def return_splits(self, from_id=True, csv_path=None):
 
 
@@ -244,7 +272,11 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		
 		else:
 			assert csv_path 
-			all_splits = pd.read_csv(csv_path, dtype=self.slide_data['slide_id'].dtype)  # Without "dtype=self.slide_data['slide_id'].dtype", read_csv() will convert all-number columns to a numerical type. Even if we convert numerical columns back to objects later, we may lose zero-padding in the process; the columns must be correctly read in from the get-go. When we compare the individual train/val/test columns to self.slide_data['slide_id'] in the get_split_from_df() method, we cannot compare objects (strings) to numbers or even to incorrectly zero-padded objects/strings. An example of this breaking is shown in https://github.com/andrew-weisman/clam_analysis/tree/main/datatype_comparison_bug-2021-12-01.
+			all_splits = pd.read_csv(csv_path, dtype=self.slide_data['slide_id'].dtype)  
+			# Without "dtype=self.slide_data['slide_id'].dtype", read_csv() will convert all-number columns to a numerical type. 
+			# Even if we convert numerical columns back to objects later, we may lose zero-padding in the process; the columns must be correctly read in from the get-go. 
+			# When we compare the individual train/val/test columns to self.slide_data['slide_id'] in the get_split_from_df() method, we cannot compare objects (strings) to numbers or even to incorrectly zero-padded objects/strings. 
+			# An example of this breaking is shown in https://github.com/andrew-weisman/clam_analysis/tree/main/datatype_comparison_bug-2021-12-01.
 			train_split = self.get_split_from_df(all_splits, 'train')
 			val_split = self.get_split_from_df(all_splits, 'val')
 			test_split = self.get_split_from_df(all_splits, 'test')
@@ -264,6 +296,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 		if return_descriptor:
 			index = [list(self.label_dict.keys())[list(self.label_dict.values()).index(i)] for i in range(self.num_classes)]
+			index = [key for key, value in self.label_dict.items() if value == i]
 			columns = ['train', 'val', 'test']
 			df = pd.DataFrame(np.full((len(index), len(columns)), 0, dtype=np.int32), index= index,
 							columns= columns)
@@ -353,6 +386,24 @@ class Generic_MIL_Dataset(Generic_WSI_Classification_Dataset):
 			return features, label, coords
 
 
+'''
+`Generic_Split`是一个继承自`Generic_MIL_Dataset`的类。它用于表示一个切分（split）的数据集。
+
+该类的构造函数`__init__`接受以下参数：
+- `slide_data`：切分的幻灯片数据，通常是一个DataFrame。
+- `data_dir`：数据目录，可选参数，默认为None。
+- `num_classes`：类别数量，可选参数，默认为2。
+
+在构造函数中，执行了以下操作：
+1. 将参数`slide_data`赋值给实例变量`slide_data`，表示切分的幻灯片数据。
+2. 将参数`data_dir`赋值给实例变量`data_dir`，表示数据目录。
+3. 将参数`num_classes`赋值给实例变量`num_classes`，表示类别数量。
+4. 创建一个空列表`slide_cls_ids`，用于存储每个类别对应的幻灯片ID。
+5. 使用循环遍历每个类别的索引，并将满足条件`slide_data['label'] == i`的幻灯片ID添加到对应的类别列表`slide_cls_ids[i]`中。
+6. 实现了`__len__`方法，返回切分的幻灯片数据的长度。
+
+总之，`Generic_Split`类表示一个切分的数据集，其中包含切分的幻灯片数据、数据目录和类别数量等属性，并提供了获取数据集长度的方法`__len__`。
+'''
 class Generic_Split(Generic_MIL_Dataset):
 	def __init__(self, slide_data, data_dir=None, num_classes=2):
 		self.use_h5 = False
