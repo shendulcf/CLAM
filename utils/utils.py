@@ -99,7 +99,10 @@ def generate_split(cls_ids, val_num, test_num, samples, n_splits = 5,
 	
 	if custom_test_ids is not None:
 		indices = np.setdiff1d(indices, custom_test_ids) # setdiff1d(x,y) return in x notin y 
-
+	'''
+	首先，创建一个包含整数索引的数组indices，长度为samples，它代表所有样本的索引。如果提供了custom_test_ids（自定义测试集ID），
+	则使用np.setdiff1d函数从indices中移除这些自定义测试集的索引
+	'''
 	np.random.seed(seed)
 	for i in range(n_splits):
 		all_val_ids = []
