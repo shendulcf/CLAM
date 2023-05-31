@@ -232,7 +232,7 @@ class Generic_WSI_Classification_Dataset(Dataset):
 		
 		return split
 
-	## ----> return_splits是一个方法，用于返回切分后的数据集
+	## ----> return_splits 是一个方法，用于返回切分后的数据集
 	'''
 	该方法接受以下参数：
 
