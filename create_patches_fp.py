@@ -9,6 +9,9 @@ import time
 import argparse
 import pdb
 import pandas as pd
+import openslide
+import imageio
+from tqdm import tqdm
 
 def stitching(file_path, wsi_object, downscale = 64):
 	start = time.time()
@@ -44,7 +47,7 @@ def patching(WSI_object, **kwargs):
 	return file_path, patch_time_elapsed
 
 
-def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_dir, 
+def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_dir, thumbnail_save_dir,
 				  patch_size = 256, step_size = 256, 
 				  seg_params = {'seg_level': -1, 'sthresh': 8, 'mthresh': 7, 'close': 4, 'use_otsu': False,
 				  'keep_ids': 'none', 'exclude_ids': 'none'},
@@ -61,6 +64,18 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 
 	slides = sorted(os.listdir(source))
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
+	## self_add
+	for slide in tqdm(slides):
+		time.sleep(0.5)
+		slide_id, _ = os.path.splitext(slide)
+		slide_path = os.path.join(source,slide)
+		slide = openslide.OpenSlide(slide_path)
+		thumbnail_path = thumbnail_save_dir + '/' +f'{slide_id}'+ '_thumb.jpg'
+		if not os.path.exists(thumbnail_path):
+			thumbnail = slide.get_thumbnail((1024,1024))
+			# thumbnail.save(f'{thumb_name}.png', thumb_path)
+			imageio.imwrite(thumbnail_path, thumbnail)
+
 	if process_list is None:
 		df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
 	
@@ -252,6 +267,7 @@ if __name__ == '__main__':
 	patch_save_dir = os.path.join(args.save_dir, 'patches')
 	mask_save_dir = os.path.join(args.save_dir, 'masks')
 	stitch_save_dir = os.path.join(args.save_dir, 'stitches')
+	thumbnail_save_dir = os.path.join(args.save_dir, 'thumbnails')
 
 	if args.process_list:
 		process_list = os.path.join(args.save_dir, args.process_list)
@@ -263,12 +279,14 @@ if __name__ == '__main__':
 	print('patch_save_dir: ', patch_save_dir)
 	print('mask_save_dir: ', mask_save_dir)
 	print('stitch_save_dir: ', stitch_save_dir)
+	print('thumbnail_save_dir: ', thumbnail_save_dir)
 	
 	directories = {'source': args.source, 
 				   'save_dir': args.save_dir,
 				   'patch_save_dir': patch_save_dir, 
 				   'mask_save_dir' : mask_save_dir, 
-				   'stitch_save_dir': stitch_save_dir} 
+				   'stitch_save_dir': stitch_save_dir,
+				   'thumbnail_save_dir': thumbnail_save_dir} 
 
 	for key, val in directories.items():
 		print("{} : {}".format(key, val))
