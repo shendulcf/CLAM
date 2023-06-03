@@ -53,7 +53,7 @@ if __name__ == '__main__':
         label_fracs = [args.label_frac]
     else:
         label_fracs = [0.1, 0.25, 0.5, 0.75, 1.0]
-    
+
     for lf in label_fracs:
         split_dir = 'splits/'+ str(args.task) + '_{}'.format(int(lf * 100))
         os.makedirs(split_dir, exist_ok=True)
@@ -62,9 +62,18 @@ if __name__ == '__main__':
             dataset.set_splits()
             descriptor_df = dataset.test_split_gen(return_descriptor=True)
             splits = dataset.return_splits(from_id=True)
-            save_splits(splits, ['train', 'val', 'test'], os.path.join(split_dir, 'splits_{}.csv'.format(i)))
-            save_splits(splits, ['train', 'val', 'test'], os.path.join(split_dir, 'splits_{}_bool.csv'.format(i)), boolean_style=True)
-            descriptor_df.to_csv(os.path.join(split_dir, 'splits_{}_descriptor.csv'.format(i)))
+            save_splits(
+                splits,
+                ['train', 'val', 'test'],
+                os.path.join(split_dir, f'splits_{i}.csv'),
+            )
+            save_splits(
+                splits,
+                ['train', 'val', 'test'],
+                os.path.join(split_dir, f'splits_{i}_bool.csv'),
+                boolean_style=True,
+            )
+            descriptor_df.to_csv(os.path.join(split_dir, f'splits_{i}_descriptor.csv'))
 
 
 
