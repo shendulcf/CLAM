@@ -68,10 +68,10 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 	for slide in tqdm(slides):
 		time.sleep(0.5)
 		slide_id, _ = os.path.splitext(slide)
-		slide_path = os.path.join(source,slide)
-		slide = openslide.OpenSlide(slide_path)
 		thumbnail_path = thumbnail_save_dir + '/' +f'{slide_id}'+ '_thumb.jpg'
 		if not os.path.exists(thumbnail_path):
+			slide_path = os.path.join(source,slide)
+			slide = openslide.OpenSlide(slide_path)
 			thumbnail = slide.get_thumbnail((1024,1024))
 			# thumbnail.save(f'{thumb_name}.png', thumb_path)
 			imageio.imwrite(thumbnail_path, thumbnail)

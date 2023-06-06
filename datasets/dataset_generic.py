@@ -296,7 +296,6 @@ class Generic_WSI_Classification_Dataset(Dataset):
 
 		if return_descriptor:
 			index = [list(self.label_dict.keys())[list(self.label_dict.values()).index(i)] for i in range(self.num_classes)]
-			index = [key for key, value in self.label_dict.items() if value == i]
 			columns = ['train', 'val', 'test']
 			df = pd.DataFrame(np.full((len(index), len(columns)), 0, dtype=np.int32), index= index,
 							columns= columns)

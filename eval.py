@@ -72,7 +72,7 @@ f.close()
 print(settings)
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = '/home/sci/Disk2/tcga_brca/RESULTS_DIRECTORY/step_3.csv',
+    dataset = Generic_MIL_Dataset(csv_path = '/home/sci/Disk2/tcga_crc/RESULTS_DIRECTORY_5/step3_get_splits.csv',
                             data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
                             shuffle = False, 
                             print_info = True,

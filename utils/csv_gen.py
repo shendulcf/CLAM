@@ -52,11 +52,11 @@ def csv_gen_test(path,result_dir):
     frame.to_csv(result_dir)
 
 
-def csv_gen_step1(csv_dir,result_dir):
+def csv_gen_step1(csv_dir,result_dir,patch_dir):
             
-    df = pd.read_csv(csv_dir) # 这个是上一步生成的csv文件
+    df = pd.read_csv(csv_dir).sort_values('slide_id') # 这个是上一步生成的csv文件
     ids1 = [i[:-4] for i in df.slide_id]
-    ids2 = [i[:-3] for i in os.listdir(r'/home/sci/Disk2/tcga_brca/RESULTS_DIRECTORY/patches')]
+    ids2 = [i[:-3] for i in os.listdir(patch_dir)]
     df['slide_id'] = ids1
     ids = df['slide_id'].isin(ids2)
     sum(ids)
