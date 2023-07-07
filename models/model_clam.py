@@ -117,8 +117,8 @@ class CLAM_SB(nn.Module):
         device=h.device
         if len(A.shape) == 1:
             A = A.view(1, -1)
-        if len(A) < self.k_sample:
-            self.k_sample = len(A)
+        # if len(A) < self.k_sample:
+        #     self.k_sample = len(A)
         top_p_ids = torch.topk(A, self.k_sample)[1][-1]
         top_p = torch.index_select(h, dim=0, index=top_p_ids)
         top_n_ids = torch.topk(-A, self.k_sample, dim=1)[1][-1]

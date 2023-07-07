@@ -1,0 +1,4 @@
+,train,val,test
+Normal,395,60,41
+LUAD,746,124,112
+LUSC,729,116,113
