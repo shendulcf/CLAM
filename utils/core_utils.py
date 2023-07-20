@@ -106,6 +106,7 @@ def train(datasets, cur, args):
     print('\nInit train/val/test splits...', end=' ')
     train_split, val_split, test_split = datasets
     save_splits(datasets, ['train', 'val', 'test'], os.path.join(args.results_dir, 'splits_{}.csv'.format(cur)))
+    ## save_splits(split_datasets, column_keys, filename, boolean_style=False)
     print('Done!')
     print("Training on {} samples".format(len(train_split)))
     print("Validating on {} samples".format(len(val_split)))
@@ -288,7 +289,7 @@ def train_loop_clam(epoch, model, loader, optimizer, n_classes, bag_weight, writ
 
 def train_loop(epoch, model, loader, optimizer, n_classes, writer = None, loss_fn = None):   
     device=torch.device("cuda" if torch.cuda.is_available() else "cpu") 
-    model.train()
+    model.train() # 激活BN Dropout
     acc_logger = Accuracy_Logger(n_classes=n_classes)
     train_loss = 0.
     train_error = 0.
