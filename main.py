@@ -92,12 +92,13 @@ parser.add_argument('--opt', type=str, choices = ['adam', 'sgd'], default='adam'
 parser.add_argument('--drop_out', action='store_true', default=False, help='enable dropout (p=0.25)')
 parser.add_argument('--bag_loss', type=str, choices=['svm', 'ce'], default='ce',
                      help='slide-level classification loss function (default: ce)')
-parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mil'], default='clam_sb', 
+parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mil','transmil'], default='clam_sb', 
                     help='type of model (default: clam_sb, clam w/ single attention branch)')
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
 parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', help='size of model, does not affect mil')
 parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
+parser.add_argument('--csv_path', type=str, default = 'dataset_csv/tcga_lung_subtyping.csv')
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
                      help='disable instance-level clustering')
@@ -144,7 +145,7 @@ settings = {'num_splits': args.k,
             'weighted_sample': args.weighted_sample,
             'opt': args.opt}
 
-if args.model_type in ['clam_sb', 'clam_mb']:
+if args.model_type in ['clam_sb', 'clam_mb', 'transmil']:
    settings.update({'bag_weight': args.bag_weight,
                     'inst_loss': args.inst_loss,
                     'B': args.B})
@@ -153,7 +154,7 @@ print('\nLoad Dataset')
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_MIL_Dataset(csv_path = '/home/sci/Disk2/tcga_crc/RESULTS_DIRECTORY_20/step3_get_splits.csv',
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_path,
                             data_dir= os.path.join(args.data_root_dir, 'tumor_vs_normal_resnet_features'),
                             shuffle = False, 
                             seed = args.seed, 
@@ -163,18 +164,19 @@ if args.task == 'task_1_tumor_vs_normal':
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
-    dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tcga_lung_subtyping.csv',
+    args.n_classes=2
+    dataset = Generic_MIL_Dataset(csv_path = args.csv_path,
                             # data_dir= os.path.join(args.data_root_dir, 'tumor_subtyping_resnet_features'),
                             data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'Normal':0, 'LUAD':1, 'LUSC':2},
+                            # label_dict = {'Normal':0, 'LUAD':1, 'LUSC':2},
+                            label_dict = {'LUAD':0, 'LUSC':1},
                             patient_strat= False,
                             ignore=[])
 
-    if args.model_type in ['clam_sb', 'clam_mb']:
+    if args.model_type in ['clam_sb', 'clam_mb', 'transmil']:
         assert args.subtyping 
         
 else:

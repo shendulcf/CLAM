@@ -2068,7 +2068,6 @@ TCGA-77-7463-01Z-00-DX1,False,True,False
 TCGA-77-7463-01A-01-TS1,False,True,False
 TCGA-77-7463-01A-01-BS1,False,True,False
 TCGA-NC-A5HR-01Z-00-DX1,False,True,False
-TCGA-NC-A5HR-01A-02-TS2,False,True,False
 TCGA-52-7622-01Z-00-DX1,False,True,False
 TCGA-52-7622-01A-01-TS1,False,True,False
 TCGA-85-8351-01Z-00-DX1,False,True,False
@@ -2390,7 +2389,6 @@ TCGA-39-5039-01A-01-BS1,False,False,True
 TCGA-39-5039-11A-01-TS1,False,False,True
 TCGA-39-5039-01Z-00-DX1,False,False,True
 TCGA-39-5039-01A-01-TS1,False,False,True
-TCGA-NC-A5HJ-01A-01-TS1,False,False,True
 TCGA-NC-A5HJ-01Z-00-DX1,False,False,True
 TCGA-34-8454-01A-01-BS1,False,False,True
 TCGA-34-8454-11A-01-TS1,False,False,True

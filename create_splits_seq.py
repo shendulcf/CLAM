@@ -17,12 +17,13 @@ parser.add_argument('--val_frac', type=float, default= 0.1,
                     help='fraction of labels for validation (default: 0.1)')
 parser.add_argument('--test_frac', type=float, default= 0.1,
                     help='fraction of labels for test (default: 0.1)')
+parser.add_argument('--csv_path', type=str, default = 'dataset_csv/tcga_lung_subtyping.csv')
 
 args = parser.parse_args()
 
 if args.task == 'task_1_tumor_vs_normal':
     args.n_classes=2
-    dataset = Generic_WSI_Classification_Dataset(csv_path = '/home/sci/Disk2/tcga_crc/RESULTS_DIRECTORY_5/step3_get_splits.csv',  #  修改了路径 dataset_csv/tumor_vs_normal_dummy_clean.csv
+    dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_path,  #  修改了路径 dataset_csv/tumor_vs_normal_dummy_clean.csv
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -31,12 +32,13 @@ if args.task == 'task_1_tumor_vs_normal':
                             ignore=[])
 
 elif args.task == 'task_2_tumor_subtyping':
-    args.n_classes=3
-    dataset = Generic_WSI_Classification_Dataset(csv_path = 'dataset_csv/tcga_lung_subtyping.csv',
+    args.n_classes=2
+    dataset = Generic_WSI_Classification_Dataset(csv_path = args.csv_path,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
-                            label_dict = {'Normal':0, 'LUAD':1, 'LUSC':2},
+                            # label_dict = {'Normal':0, 'LUAD':1, 'LUSC':2},
+                            label_dict = {'LUAD':0, 'LUSC':1},
                             patient_strat= True,
                             patient_voting='maj',
                             ignore=[])

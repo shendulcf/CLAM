@@ -1,4 +1,4 @@
 ,train,val,test
-subtype_1,101,25,23
-subtype_2,57,15,14
-subtype_3,40,9,9
+Normal,310,51,42
+LUAD,508,114,121
+LUSC,482,116,119

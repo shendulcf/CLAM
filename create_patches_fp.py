@@ -57,24 +57,25 @@ def seg_and_patch(source, save_dir, patch_save_dir, mask_save_dir, stitch_save_d
 				  patch_level = 0,
 				  use_default_params = False, 
 				  seg = False, save_mask = True, 
-				  stitch= False, 
+				  stitch= False, thumbnail = False,
 				  patch = False, auto_skip=True, process_list = None):
 	
 
-
 	slides = sorted(os.listdir(source))
 	slides = [slide for slide in slides if os.path.isfile(os.path.join(source, slide))]
-	## self_add
-	for slide in tqdm(slides):
-		time.sleep(0.5)
-		slide_id, _ = os.path.splitext(slide)
-		thumbnail_path = thumbnail_save_dir + '/' +f'{slide_id}'+ '_thumb.jpg'
-		if not os.path.exists(thumbnail_path):
-			slide_path = os.path.join(source,slide)
-			slide = openslide.OpenSlide(slide_path)
-			thumbnail = slide.get_thumbnail((1024,1024))
-			# thumbnail.save(f'{thumb_name}.png', thumb_path)
-			imageio.imwrite(thumbnail_path, thumbnail)
+
+	if thumbnail:
+		## self_add
+		for slide in tqdm(slides):
+			time.sleep(0.5)
+			slide_id, _ = os.path.splitext(slide)
+			thumbnail_path = thumbnail_save_dir + '/' +f'{slide_id}'+ '_thumb.jpg'
+			if not os.path.exists(thumbnail_path):
+				slide_path = os.path.join(source,slide)
+				slide = openslide.OpenSlide(slide_path)
+				thumbnail = slide.get_thumbnail((1024,1024))
+				# thumbnail.save(f'{thumb_name}.png', thumb_path)
+				imageio.imwrite(thumbnail_path, thumbnail)
 
 	if process_list is None:
 		df = initialize_df(slides, seg_params, filter_params, vis_params, patch_params)
@@ -260,6 +261,7 @@ parser.add_argument('--patch_level', type=int, default=0,
 					help='downsample level at which to patch')
 parser.add_argument('--process_list',  type = str, default=None,
 					help='name of list of images to process with parameters (.csv)')
+parser.add_argument('--thumbnail', default=False, action='store_true')
 
 if __name__ == '__main__':
 	args = parser.parse_args()
@@ -323,6 +325,6 @@ if __name__ == '__main__':
 	seg_times, patch_times = seg_and_patch(**directories, **parameters,
 											patch_size = args.patch_size, step_size=args.step_size, 
 											seg = args.seg,  use_default_params=False, save_mask = True, 
-											stitch= args.stitch,
+											stitch= args.stitch,thumbnail = args.thumbnail,
 											patch_level=args.patch_level, patch = args.patch,
 											process_list = process_list, auto_skip=args.no_auto_skip)
