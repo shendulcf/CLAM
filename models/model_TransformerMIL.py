@@ -9,7 +9,9 @@ from torch.nn.init import xavier_normal_
 # import utils.utils
 # from topk import SmoothTop1SVM
 from nystrom_attention import NystromAttention
-from performer_pytorch import SelfAttention as linear_SA
+from performer_pytorch import SelfAttention as PerformerAttention
+from memory_efficient_attention_pytorch import Attention as MemoryEfficientAttention
+from flash_pytorch import FLASH
 from utils.utils_myself import initialize_weights
 
 class Residual(nn.Module):
@@ -139,14 +141,14 @@ class TransformerEncoder_Nystorm(nn.Module):
         else:
             return x
         
-class TransformerEncoder_linear_SA(nn.Module):
+class TransformerEncoder_PerformerAttention(nn.Module):
     def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
         # print("dim:", dim, "heads:",heads, "dim_head:",dim_head, 'mlp_dim:',mlp_dim)
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(nn.ModuleList([
-                PreNorm(dim, linear_SA(dim = dim, heads=heads, dim_head=dim_head, causal = False)),
+                PreNorm(dim, PerformerAttention(dim = dim, heads=heads, dim_head=dim_head, causal = False)),
                 PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
             ]))
 
@@ -164,7 +166,58 @@ class TransformerEncoder_linear_SA(nn.Module):
             return x, attn_list
         else:
             return x
-            
+
+class TransformerEncoder_MemoryEfficientAttention(nn.Module):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
+        super().__init__()
+        # print("dim:", dim, "heads:",heads, "dim_head:",dim_head, 'mlp_dim:',mlp_dim)
+        self.layers = nn.ModuleList([])
+        for _ in range(depth):
+            self.layers.append(nn.ModuleList([
+                PreNorm(dim, MemoryEfficientAttention(dim = dim, heads=heads, dim_head=dim_head, causal = False, k_bucket_size=1024)),
+                PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
+            ]))
+
+    def forward(self, x, return_attn=False):
+        
+        attn_list=list()
+        for self_attn, ff in self.layers:
+            # out,attn=self_attn(x) # 改了注意力，所以不能直接输出attn
+            out = self_attn(x)
+            x = out + x
+            x = ff(x) + x
+            # attn_list.append(attn)
+
+        if return_attn:
+            return x, attn_list
+        else:
+            return x    
+
+class TransformerEncoder_FLASH(nn.Module):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
+        super().__init__()
+        # print("dim:", dim, "heads:",heads, "dim_head:",dim_head, 'mlp_dim:',mlp_dim)
+        self.layers = nn.ModuleList([])
+        for _ in range(depth):
+            self.layers.append(nn.ModuleList([
+                PreNorm(dim, FLASH(dim = dim, group_size=256,causal = True, query_key_dim=128, expansion_factor = 2, laplace_attn_fn=True)),
+                PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
+            ]))
+
+    def forward(self, x, return_attn=False):
+        
+        attn_list=list()
+        for self_attn, ff in self.layers:
+            # out,attn=self_attn(x) # 改了注意力，所以不能直接输出attn
+            out = self_attn(x)
+            x = out + x
+            x = ff(x) + x
+            # attn_list.append(attn)
+
+        if return_attn:
+            return x, attn_list
+        else:
+            return x     
         
 """
 Attention Network without Gating (2 fc layers)
@@ -268,7 +321,7 @@ class TransformerMIL_SB(nn.Module):
         ################################################################
         ## self_add
         self.cls_token = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer = TransformerEncoder_linear_SA(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer = TransformerEncoder_PerformerAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)

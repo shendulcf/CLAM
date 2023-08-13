@@ -97,8 +97,8 @@ class MCBAT_SB(nn.Module):
         ## self_add
         self.cls_token_low = nn.Parameter(torch.rand(1,1,size[1]))
         self.cls_token_high = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer_low  = TransformerEncoder_linear_SA(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
-        self.transformer_high = TransformerEncoder_linear_SA(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_low  = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_high = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
