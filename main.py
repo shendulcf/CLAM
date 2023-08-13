@@ -72,6 +72,8 @@ parser.add_argument('--max_epochs', type=int, default=200,
                     help='maximum number of epochs to train (default: 200)')
 parser.add_argument('--lr', type=float, default=1e-4,
                     help='learning rate (default: 0.0001)')
+parser.add_argument('--max_lr', type=float, default=1e-2,
+                    help='learning rate (default: 0.01)')
 parser.add_argument('--label_frac', type=float, default=1.0,
                     help='fraction of training labels (default: 1.0)')
 parser.add_argument('--reg', type=float, default=1e-5,
@@ -88,7 +90,7 @@ parser.add_argument('--split_dir', type=str, default=None,
 parser.add_argument('--log_data', action='store_true', default=False, help='log data using tensorboard')
 parser.add_argument('--testing', action='store_true', default=False, help='debugging tool')
 parser.add_argument('--early_stopping', action='store_true', default=False, help='enable early stopping')
-parser.add_argument('--opt', type=str, choices = ['adam', 'sgd'], default='adam')
+parser.add_argument('--opt', type=str, choices = ['adam', 'sgd', 'adamW', 'Radam'], default='adam')
 parser.add_argument('--drop_out', action='store_true', default=False, help='enable dropout (p=0.25)')
 parser.add_argument('--bag_loss', type=str, choices=['svm', 'ce'], default='ce',
                      help='slide-level classification loss function (default: ce)')
