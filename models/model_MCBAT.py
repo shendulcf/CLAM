@@ -67,7 +67,7 @@ args:
 """
 
 class MCBAT_SB(nn.Module):
-    def __init__(self, gate = True, size_arg = "small", depth =2,  dropout = False, k_sample=8, n_classes=2,
+    def __init__(self, gate = True, size_arg = "small", depth = 1,  dropout = False, k_sample=8, n_classes=2,
         instance_loss_fn=nn.CrossEntropyLoss(), subtyping=False):
         super(MCBAT_SB, self).__init__()
 
