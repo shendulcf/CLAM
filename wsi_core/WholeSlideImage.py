@@ -27,7 +27,7 @@ class WholeSlideImage(object):
             path (str): fullpath to WSI file
         """
 
-#         self.name = ".".join(path.split("/")[-1].split('.')[:-1])
+        # self.name = ".".join(path.split("/")[-1].split('.')[:-1])
         self.name = os.path.splitext(os.path.basename(path))[0]
         self.wsi = openslide.open_slide(path)
         self.level_downsamples = self._assertLevelDownsamples()
@@ -41,16 +41,18 @@ class WholeSlideImage(object):
         return self.wsi
 
     def initXML(self, xml_path):
-        def _createContour(coord_list):
+        def _createContour(coord_list): # initXML 内部的一个辅助函数，用于创建轮廓。它接受一个包含坐标信息的列表，然后将其转换为适用于轮廓的NumPy数组
             return np.array([[[int(float(coord.attributes['X'].value)), 
                                int(float(coord.attributes['Y'].value))]] for coord in coord_list], dtype = 'int32')
 
-        xmldoc = minidom.parse(xml_path)
+        xmldoc = minidom.parse(xml_path) # 使用minidom库解析给定的XML文件，将其内容加载到一个DOM文档对象中
         annotations = [anno.getElementsByTagName('Coordinate') for anno in xmldoc.getElementsByTagName('Annotation')]
-        self.contours_tumor  = [_createContour(coord_list) for coord_list in annotations]
-        self.contours_tumor = sorted(self.contours_tumor, key=cv2.contourArea, reverse=True)
-
-    def initTxt(self,annot_path):
+        ## 在DOM文档中找到所有名为Annotation的元素，并针对每个Annotation元素获取其下所有名为Coordinate的子元素，将其放入一个列表中。这将为每个注释创建一个包含坐标的列表
+        self.contours_tumor  = [_createContour(coord_list) for coord_list in annotations] # 使用前面定义的辅助函数，将每个注释的坐标列表转换为轮廓。这将得到一个包含所有注释轮廓的列表
+        self.contours_tumor = sorted(self.contours_tumor, key=cv2.contourArea, reverse=True) # 对注释轮廓列表按照轮廓面积进行排序，从大到小排列。这可以根据轮廓的大小对它们进行排序
+    
+    # ----> 从注释文件中获得轮廓
+    def initTxt(self,annot_path): 
         def _create_contours_from_dict(annot):
             all_cnts = []
             for idx, annot_group in enumerate(annot):
@@ -181,10 +183,16 @@ class WholeSlideImage(object):
         self.contours_tissue = [self.contours_tissue[i] for i in contour_ids]
         self.holes_tissue = [self.holes_tissue[i] for i in contour_ids]
 
+    # ----> 可视化全切片图像及其相关标注、分割轮廓等信息
     def visWSI(self, vis_level=0, color = (0,255,0), hole_color = (0,0,255), annot_color=(255,0,0), 
                     line_thickness=250, max_size=None, top_left=None, bot_right=None, custom_downsample=1, view_slide_only=False,
                     number_contours=False, seg_display=True, annot_display=True):
-        
+        '''
+        vis_level：指定可视化的图像层级。| color、hole_color、annot_color：定义轮廓、孔洞和注释的颜色。
+        line_thickness：指定绘制轮廓的线条厚度。| max_size：指定可视化图像的最大尺寸。| top_left 和 bot_right：定义可视化的图像区域的左上角和右下角坐标。
+        custom_downsample：自定义下采样因子，用于降低图像分辨率。| view_slide_only：是否仅查看干净的全切片图像，不包括轮廓和标注。
+        number_contours：是否在轮廓上标注编号。| seg_display：是否显示组织分割轮廓。| annot_display：是否显示标注轮廓。
+        '''
         downsample = self.level_downsamples[vis_level]
         scale = [1/downsample[0], 1/downsample[1]]
         
