@@ -74,6 +74,8 @@ parser.add_argument('--lr', type=float, default=1e-4,
                     help='learning rate (default: 0.0001)')
 parser.add_argument('--max_lr', type=float, default=1e-2,
                     help='learning rate (default: 0.01)')
+parser.add_argument('--lr_shedule', type=bool, default=False, 
+                    help='whether or not use lr_shedule')
 parser.add_argument('--label_frac', type=float, default=1.0,
                     help='fraction of training labels (default: 1.0)')
 parser.add_argument('--reg', type=float, default=1e-5,
@@ -93,7 +95,7 @@ parser.add_argument('--early_stopping', action='store_true', default=False, help
 parser.add_argument('--opt', type=str, choices = ['adam', 'sgd', 'adamW', 'Radam'], default='adam')
 parser.add_argument('--drop_out', action='store_true', default=False, help='enable dropout (p=0.25)')
 parser.add_argument('--bag_loss', type=str, choices=['svm', 'ce'], default='ce',
-                     help='slide-level classification loss function (default: ce)')
+                    help='slide-level classification loss function (default: ce)')
 parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mil','transmil'], default='clam_sb', 
                     help='type of model (default: clam_sb, clam w/ single attention branch)')
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
@@ -103,11 +105,11 @@ parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'tas
 parser.add_argument('--csv_path', type=str, default = 'dataset_csv/tcga_lung_subtyping.csv')
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
-                     help='disable instance-level clustering')
+                    help='disable instance-level clustering')
 parser.add_argument('--inst_loss', type=str, choices=['svm', 'ce', None], default=None,
-                     help='instance-level clustering loss function (default: None)')
+                    help='instance-level clustering loss function (default: None)')
 parser.add_argument('--subtyping', action='store_true', default=False, 
-                     help='subtyping problem')
+                    help='subtyping problem')
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')

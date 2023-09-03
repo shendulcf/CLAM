@@ -77,6 +77,8 @@ parser.add_argument('--lr', type=float, default=1e-4,
                     help='learning rate (default: 0.0001)')
 parser.add_argument('--max_lr', type=float, default=1e-2,
                     help='learning rate (default: 0.01)')
+parser.add_argument('--lr_shedule', type=bool, default=False, 
+                    help='whether or not use lr_shedule')
 parser.add_argument('--label_frac', type=float, default=1.0,
                     help='fraction of training labels (default: 1.0)')
 parser.add_argument('--reg', type=float, default=1e-5,

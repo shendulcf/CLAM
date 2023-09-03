@@ -168,19 +168,21 @@ def train(datasets, cur, args):
 
     print('\nInit optimizer ...', end=' ')
     optimizer = get_optim(model, args)
-    # 假设总训练步数为T_max
-    T_max = 25 
-    # 设置warmup步数和初始学习率
-    warmup_steps = 5    
 
-    # 计算warmup的学习率增长曲线
-    warmup_lr_schedule = np.linspace(args.lr, args.max_lr, warmup_steps)
+    if args.lr_shedule:
+        # 假设总训练步数为T_max
+        T_max = 25 
+        # 设置warmup步数和初始学习率
+        warmup_steps = 5    
 
-    # 定义warmup scheduler    
-    warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda t: warmup_lr_schedule[t])
+        # 计算warmup的学习率增长曲线
+        warmup_lr_schedule = np.linspace(args.lr, args.max_lr, warmup_steps)
 
-    # 定义cosine annealing scheduler
-    cosine_scheduler = CosineAnnealingLR(optimizer, T_max, eta_min=2e-5)
+        # 定义warmup scheduler    
+        warmup_scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda t: warmup_lr_schedule[t])
+
+        # 定义cosine annealing scheduler
+        cosine_scheduler = CosineAnnealingLR(optimizer, T_max, eta_min=2e-5)
     print('Done!')
     
     print('\nInit Loaders...', end=' ')
@@ -198,14 +200,15 @@ def train(datasets, cur, args):
     print('Done!')
     t=1
     for epoch in range(args.max_epochs):
-
-        # warmup阶段
-        if t < warmup_steps: 
-            warmup_scheduler.step()
-         # cosine annealing阶段 
-        else:
-            cosine_scheduler.step()
-        t+=1
+        
+        if args.lr_shedule:
+            # warmup阶段
+            if t < warmup_steps: 
+                warmup_scheduler.step()
+            # cosine annealing阶段 
+            else:
+                cosine_scheduler.step()
+            t+=1
 
         if args.model_type in ['clam_sb', 'clam_mb','transmil','mcbat_sb'] and not args.no_inst_cluster:  # ---->> 3   
             train_loop_mcbat(epoch, model, train_loader, optimizer, args.n_classes, args.bag_weight, writer, loss_fn)
