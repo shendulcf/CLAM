@@ -44,7 +44,6 @@ def main(args):
         seed_torch(args.seed)
         train_dataset, val_dataset, test_dataset = dataset.return_splits(from_id=False, # return train/val/test dataset 
                 csv_path='{}/splits_{}.csv'.format(args.split_dir, i))
-                                                                            
         
         datasets = (train_dataset, val_dataset, test_dataset)
         results, test_auc, val_auc, test_acc, val_acc  = train(datasets, i, args)
@@ -153,8 +152,8 @@ settings = {'num_splits': args.k,
             'weighted_sample': args.weighted_sample,
             'opt': args.opt}
 
-if args.model_type in ['clam_sb', 'clam_mb', 'transmil']:
-   settings.update({'bag_weight': args.bag_weight,
+if args.model_type in ['clam_sb', 'clam_mb', 'transmil','mcbat_sb']:
+    settings.update({'bag_weight': args.bag_weight,
                     'inst_loss': args.inst_loss,
                     'B': args.B})
 

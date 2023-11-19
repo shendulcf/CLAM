@@ -1,0 +1,3 @@
+,train,val,test
+LUAD,184,34,41
+LUSC,180,40,53
