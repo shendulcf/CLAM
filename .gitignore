@@ -1,6 +1,7 @@
 **/.DS_Store
 __pycache__/
 data/
+dataset_cluster
 heatmaps/demo
 data2
 data_tcga_brca/

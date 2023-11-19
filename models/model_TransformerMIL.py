@@ -321,7 +321,7 @@ class TransformerMIL_SB(nn.Module):
         ################################################################
         ## self_add
         self.cls_token = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer = TransformerEncoder_PerformerAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
@@ -415,17 +415,28 @@ class TransformerMIL_SB(nn.Module):
         instance_loss = self.instance_loss_fn(logits, p_targets)
         return instance_loss, p_preds, p_targets
     
-    def forward(self, xs, label=None, instance_eval=False, return_features=False, attention_only=False, cluster_feature=False):
-        if cluster_feature:
+    def forward(self, xs, label=None, instance_eval=False, return_features=False, attention_only=False, use_cluster=False):
+        if use_cluster:
         ################################################################
-        # ----> add cluster            
+        # ----> add cluster 
+            device = xs.device          
             H = []
             instance_feature = []
+            print('----------------')
+            print(xs.size())
+            
+            
             for x in xs:
+                print(x.size())
                 x = self.projector(x) # 2048 -> 512 delete,clam 1024 -> 512
-                x = torch.cat((self.cls_token, x), dim=1)
+                # x = torch.cat((self.cls_token, x), dim=1)
+                x = x.unsqueeze(0)
+                print(f'x.shape = {x.shape}')
+                x = torch.cat((self.cls_token, x.cpu()), dim=1)
+                x = x.to(device)
                 x = self.dropout(x)
                 rep = self.transformer(x) # b,n,(h,d) --> b,n,dim --> b,n, mlp_dim
+                # rep = rep.squeeze(0)
                 H.append(rep[:, 0]) # class_token
                 instance_feature.append(rep[:, 1:])
             H = torch.cat(H) # B,10,512
@@ -461,9 +472,37 @@ class TransformerMIL_SB(nn.Module):
                     total_inst_loss += instance_loss
                 if self.subtyping:
                     total_inst_loss /= len(self.instance_classifiers)
-                M = torch.mm(A,H) # KxL
-                logit = self.classifiers(M)
-                return logit, total_inst_loss, A_raw
+            ################################################################
+            # return villare
+            print(A.shape)
+            print(H.shape)
+            M = torch.mm(A,H) # KxL
+            print(M.shape)
+            logits_t = self.classifiers(M)
+            Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
+            Y_prob_t = F.softmax(logits_t, dim = 1)
+            # return logit, total_inst_loss, A_raw
+            ################################################################
+            # # ----> 使用cls_token 进行分类
+            # print(f'HHHHHHHHH = {H.size()}')
+            # logits_t = self.classifiers(H)
+            # print(logits_t.size())
+            # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
+            # Y_prob_t = F.softmax(logits_t, dim = 1)
+            ################################################################
+            ## 使用原来的AttentionMIL进行分类
+            # M = torch.mm(A, h) 
+            # logits = self.classifiers(M)
+            # Y_hat = torch.topk(logits, 1, dim = 1)[1]
+            # Y_prob = F.softmax(logits, dim = 1)
+            if instance_eval:
+                results_dict = {'instance_loss': total_inst_loss, 'inst_labels': np.array(all_targets), 
+                'inst_preds': np.array(all_preds)}
+            else:
+                results_dict = {}
+            if return_features:
+                results_dict.update({'features': M})
+            return logits_t, Y_prob_t, Y_hat_t, A_raw, results_dict
         else:
             # device = xs.device
             # A, h = self.attention_net(xs)  # NxK        
@@ -518,12 +557,14 @@ class TransformerMIL_SB(nn.Module):
                 if self.subtyping:
                     total_inst_loss /= len(self.instance_classifiers)
 
-            ################################################################
-            # ----> 使用cls_token 进行分类
-            H = H.unsqueeze(0)
-            logits_t = self.classifiers(H)
-            Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
-            Y_prob_t = F.softmax(logits_t, dim = 1)
+            # ################################################################
+            # # ----> 使用cls_token 进行分类
+            # print(H.size())
+            # H = H.unsqueeze(0)
+            # logits_t = self.classifiers(H)
+            # print(logits_t.size())
+            # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
+            # Y_prob_t = F.softmax(logits_t, dim = 1)
             ################################################################
             ## 使用原来的AttentionMIL进行分类
             # M = torch.mm(A, h) 
@@ -538,12 +579,4 @@ class TransformerMIL_SB(nn.Module):
             if return_features:
                 results_dict.update({'features': M})
             return logits_t, Y_prob_t, Y_hat_t, A_raw, results_dict
-
-
-
-
-
-
-
-
 
