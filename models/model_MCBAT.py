@@ -88,7 +88,7 @@ class MCBAT_SB(nn.Module):
             attention_net = Attn_Net(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
         fc.append(attention_net)
         self.attention_net = nn.Sequential(*fc)
-        self.classifiers = nn.Linear(size[1], n_classes)
+        self.classifiers = nn.Linear(size[0], n_classes)
         instance_classifiers = [nn.Linear(size[1], 2) for i in range(n_classes)]
         self.instance_classifiers = nn.ModuleList(instance_classifiers)
 
@@ -97,8 +97,8 @@ class MCBAT_SB(nn.Module):
         ## self_add
         self.cls_token_low = nn.Parameter(torch.rand(1,1,size[1]))
         self.cls_token_high = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer_low  = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
-        self.transformer_high = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_low  = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_high = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
@@ -292,7 +292,7 @@ class MCBAT_SB(nn.Module):
             x, H_low, instance_feature_low = self.forward_low_scale(xs)
             y, H_high, instance_feature_high = self.forward_high_scale(ys)
             
-            x,y,bottle_token = self.fusion_encoder(x,y,return_bottoken = True)
+            # x,y,bottle_token = self.fusion_encoder(x,y,return_bottoken = True)
 
             ## clam attention
             A, h = self.attention(instance_feature_high)
@@ -329,10 +329,14 @@ class MCBAT_SB(nn.Module):
             # logits_t = self.classifiers(H)
             # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             # Y_prob_t = F.softmax(logits_t, dim = 1)
-            x = x[:, 0]
-            y = y[:, 0]
-            H = (x+y)*0.5
+            # x = x[:, 0]
+            # y = y[:, 0]
+            H = torch.cat((H_high, H_low))
+            
+            print(H.shape)
+            # H = (x+y)*0.5
             logits_t = self.classifiers(H)
+            print(logits_t.shape)
             Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             Y_prob_t = F.softmax(logits_t, dim = 1)
             ################################################################

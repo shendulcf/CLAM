@@ -11,6 +11,7 @@ from torch.nn.init import xavier_normal_
 from nystrom_attention import NystromAttention
 from performer_pytorch import SelfAttention as PerformerAttention
 from memory_efficient_attention_pytorch import Attention as MemoryEfficientAttention
+from FlashAttention2.attention import FlashAttention
 from flash_pytorch import FLASH
 from utils.utils_myself import initialize_weights
 
@@ -219,6 +220,32 @@ class TransformerEncoder_FLASH(nn.Module):
         else:
             return x     
         
+
+class TransformerEncoder_FLASHAttention(nn.Module):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout = 0.):
+        super().__init__()
+        # print("dim:", dim, "heads:",heads, "dim_head:",dim_head, 'mlp_dim:',mlp_dim)
+        self.layers = nn.ModuleList([])
+        for _ in range(depth):
+            self.layers.append(nn.ModuleList([
+                PreNorm(dim, FlashAttention(dim=dim, heads=heads, dim_head=dim_head)),
+                PreNorm(dim, FeedForward(dim, mlp_dim, dropout = dropout))
+            ]))
+
+    def forward(self, x, return_attn=False):
+        
+        attn_list=list()
+        for self_attn, ff in self.layers:
+            # out,attn=self_attn(x) # 改了注意力，所以不能直接输出attn
+            out = self_attn(x)
+            x = out + x
+            x = ff(x) + x
+            # attn_list.append(attn)
+
+        if return_attn:
+            return x, attn_list
+        else:
+            return x  
 """
 Attention Network without Gating (2 fc layers)
 args:
@@ -321,7 +348,7 @@ class TransformerMIL_SB(nn.Module):
         ################################################################
         ## self_add
         self.cls_token = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
@@ -422,16 +449,17 @@ class TransformerMIL_SB(nn.Module):
             device = xs.device          
             H = []
             instance_feature = []
-            print('----------------')
-            print(xs.size())
+            # print('----------------')
+            # print(xs.size())
             
             
             for x in xs:
-                print(x.size())
+                mask = x != 0
+                mask = mask.any(dim=1)
+                x = x[mask]
                 x = self.projector(x) # 2048 -> 512 delete,clam 1024 -> 512
                 # x = torch.cat((self.cls_token, x), dim=1)
                 x = x.unsqueeze(0)
-                print(f'x.shape = {x.shape}')
                 x = torch.cat((self.cls_token, x.cpu()), dim=1)
                 x = x.to(device)
                 x = self.dropout(x)
@@ -474,10 +502,10 @@ class TransformerMIL_SB(nn.Module):
                     total_inst_loss /= len(self.instance_classifiers)
             ################################################################
             # return villare
-            print(A.shape)
-            print(H.shape)
+            # print(A.shape)
+            # print(H.shape)
             M = torch.mm(A,H) # KxL
-            print(M.shape)
+            # print(M.shape)
             logits_t = self.classifiers(M)
             Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             Y_prob_t = F.softmax(logits_t, dim = 1)

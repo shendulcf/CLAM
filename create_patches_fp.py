@@ -1,4 +1,4 @@
-# internal imports
+    # internal imports
 from wsi_core.WholeSlideImage import WholeSlideImage
 from wsi_core.wsi_utils import StitchCoords
 from wsi_core.batch_process_utils import initialize_df
