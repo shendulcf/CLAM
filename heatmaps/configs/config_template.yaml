@@ -4,11 +4,11 @@ exp_arguments:
   # number of classes
   n_classes: 2
   # name tag for saving generated figures and assets
-  save_exp_code: HEATMAP_OUTPUT 
+  save_exp_code: NSCLC_OUTPUT 
   # where to save raw asset files
-  raw_save_dir: heatmaps/heatmap_raw_results
+  raw_save_dir: heatmaps/nsclc_raw_results
   # where to save final heatmaps
-  production_save_dir: heatmaps/heatmap_production_results
+  production_save_dir: heatmaps/nsclc_production_results
   batch_size: 384
 data_arguments: 
   # where is data stored; can be a single str path or a dictionary of key, data_dir mapping
@@ -23,11 +23,11 @@ data_arguments:
   slide_ext: .svs
   # label dictionary for str: interger mapping (optional)
   label_dict:
-    # LUAD: 0
-    # LSCC: 1 
+    LUAD: 0
+    LUSC: 1 
     # TCGA: 2
-    tumor: 1
-    normal: 0                       
+    # tumor: 1
+    # normal: 0                       
 patching_arguments:
   # arguments for patching
   patch_size: 256
@@ -36,7 +36,7 @@ patching_arguments:
   custom_downsample: 1
 model_arguments: 
   # arguments for initializing model from checkpoint
-  ckpt_path: heatmaps/demo/ckpts/s_4_checkpoint_crc.pt
+  ckpt_path: heatmaps/demo/ckpts/s_0_checkpoint.pt
   model_type: attention_mil # see utils/eval_utils/
   initiate_fn: initiate_model # see utils/eval_utils/
   model_size: small
@@ -74,7 +74,7 @@ sample_arguments:
     - name: "topk_high_attention"
       sample: true
       seed: 1
-      k: 15 # save top-k patches
+      k: 10 # save top-k patches
       mode: topk
 
 
