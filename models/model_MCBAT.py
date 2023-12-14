@@ -331,12 +331,11 @@ class MCBAT_SB(nn.Module):
             # Y_prob_t = F.softmax(logits_t, dim = 1)
             # x = x[:, 0]
             # y = y[:, 0]
-            H = torch.cat((H_high, H_low))
-            
-            print(H.shape)
             # H = (x+y)*0.5
+
+            H = torch.cat((H_high, H_low))
+            H = H.unsqueeze(0)
             logits_t = self.classifiers(H)
-            print(logits_t.shape)
             Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             Y_prob_t = F.softmax(logits_t, dim = 1)
             ################################################################
