@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from models.model_mil import MIL_fc, MIL_fc_mc
 from models.model_clam import CLAM_SB, CLAM_MB
+from models.model_TransformerMIL import TransformerMIL_SB as Transmil
 import pdb
 import os
 import pandas as pd
@@ -25,6 +26,8 @@ def initiate_model(args, ckpt_path):
         model = CLAM_SB(**model_dict)
     elif args.model_type =='clam_mb':
         model = CLAM_MB(**model_dict)
+    elif args.model_type =='transmil':
+        model = Transmil(**model_dict)
     else: # args.model_type == 'mil'
         if args.n_classes > 2:
             model = MIL_fc_mc(**model_dict)

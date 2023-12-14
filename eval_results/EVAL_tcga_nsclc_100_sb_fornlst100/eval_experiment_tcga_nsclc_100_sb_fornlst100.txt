@@ -1,0 +1,1 @@
+{'task': 'task_2_tumor_subtyping', 'split': 'test', 'save_dir': './eval_results/EVAL_tcga_nsclc_100_sb_fornlst100', 'models_dir': 'results/tcga_nsclc_sub_100_level1_sb_s1', 'model_type': 'clam_sb', 'drop_out': True, 'model_size': 'small'}
