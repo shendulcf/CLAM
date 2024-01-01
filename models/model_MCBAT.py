@@ -266,7 +266,7 @@ class MCBAT_SB(nn.Module):
         device = x.device
         x = x.unsqueeze(0)
         x = self.projector(x)
-        x = torch.cat((self.cls_token_low, x.cpu()), dim=1)
+        x = torch.cat((self.cls_token_high, x.cpu()), dim=1)
         x = x.to(device)
         x = self.dropout(x)
 
