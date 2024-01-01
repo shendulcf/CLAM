@@ -3,6 +3,7 @@ __pycache__/
 data/
 dataset_cluster
 heatmaps/demo
+heatmaps
 data2
 data_tcga_brca/
 data_tcga_crc/DATA_DIRECTORY

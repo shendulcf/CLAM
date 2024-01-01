@@ -1,2 +1,5 @@
 slide_id,label,process,status,seg_level,sthresh,mthresh,close,use_otsu,keep_ids,exclude_ids,a_t,a_h,max_n_holes,vis_level,line_thickness,use_padding,contour_fn,bag_size,Pred_0,p_0,Pred_1,p_1
-TCGA-3L-AA1B-01Z-00-DX2.17CE3683-F4B1-4978-A281-8F620C4D77B4,tumor,1,tbp,-1,8,7,4,False,none,none,16.0,4.0,8,-1,100,True,four_pt,27313.0,tumor,0.9999940395355225,normal,5.908119874220574e-06
+LUAD-TCGA-49-4494-01Z-00-DX2,LUAD,1,tbp,-1,8,7,4,False,none,none,16.0,4.0,8,-1,100,True,four_pt,88.0,LUAD,0.9625693559646606,LUSC,0.03743063658475876
+LUAD-TCGA-49-4494-01Z-00-DX3,LUAD,1,tbp,-1,8,7,4,False,none,none,16.0,4.0,8,-1,100,True,four_pt,51.0,LUAD,0.9093730449676514,LUSC,0.09062701463699341
+LUSC-TCGA-18-3406-01Z-00-DX1,LUSC,1,tbp,-1,8,7,4,False,none,none,16.0,4.0,8,-1,100,True,four_pt,86.0,LUSC,0.8907213807106018,LUAD,0.10927868634462357
+LUSC-TCGA-18-3407-01Z-00-DX1,LUSC,1,tbp,-1,8,7,4,False,none,none,16.0,4.0,8,-1,100,True,four_pt,62.0,LUSC,0.9208996295928955,LUAD,0.07910043746232986

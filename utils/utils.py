@@ -36,7 +36,7 @@ class SubsetSequentialSampler(Sampler):
 #2 ----> 用于对输入的批次数据进行整理和组装
 def collate_MIL(batch):
 	img = torch.cat([item[0] for item in batch], dim = 0)
-	label = torch.LongTensor([item[1] for item in batch])
+	label = torch.LongTensor([np.array(item[1]) for item in batch])
 	return [img, label]
 #3 ----> 用于对特征数据的批次进行整理和组装
 def collate_features(batch):

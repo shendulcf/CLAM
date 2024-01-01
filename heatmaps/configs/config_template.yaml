@@ -32,12 +32,12 @@ patching_arguments:
   # arguments for patching
   patch_size: 256
   overlap: 0.5
-  patch_level: 0
+  patch_level: 1
   custom_downsample: 1
 model_arguments: 
   # arguments for initializing model from checkpoint
-  ckpt_path: heatmaps/demo/ckpts/s_0_checkpoint.pt
-  model_type: attention_mil # see utils/eval_utils/
+  ckpt_path: heatmaps/demo/ckpts/tcga_nsclc_sb_fold4.pt
+  model_type: clam_sb # see utils/eval_utils/
   initiate_fn: initiate_model # see utils/eval_utils/
   model_size: small
   drop_out: true
@@ -53,7 +53,7 @@ heatmap_arguments:
   # file extension for saving heatmap/original image
   save_ext: jpg
   # whether to calculate percentile scores in reference to the set of non-overlapping patches
-  use_ref_scores: true
+  use_ref_scores: False
   # whether to use gaussian blur for further smoothing
   blur: false
   # whether to shift the 4 default corner points for checking if a patch is inside a foreground contour

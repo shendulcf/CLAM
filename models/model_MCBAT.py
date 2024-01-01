@@ -51,7 +51,52 @@ class FusionEncoder(nn.Module):
         else:
             return x,y
 
+class DRFF(nn.Module):
+    def __init__(self, num_latents):
+        super(DRFF, self).__init__()
+
+        # self.trans_low = trans_low
+        # self.trans_high = trans_high
+        # self.cls_low = cls_token_low
+        # self.cls_high = cls_token_high # shape = (1, 1, 512)
+        # concat_cls = torch.cat([self.cls_low, self.cls_high], dim=2)
+        # self.projector = nn.Linear(concat_cls, 512)
+        # self.concat_cls = self.projector(concat_cls)
+        # Latents
+        self.num_latents = num_latents
+        self.latents = nn.Parameter(torch.empty(1, num_latents, 512).normal_(std=0.02))
+
+    # single head self-attention
+    def attention(self,q,k,v): # requires q,k,v to have same dim
+        B, N, C = q.shape
+        attn = (q @ k.transpose(-2, -1)) * (C ** -0.5) # scaling
+        attn = attn.softmax(dim=-1)
+        x = (attn @ v).reshape(B, N, C)
+        return x
+    
+    # Latent Fusion
+    # 定义fusion方法,将低分辨率特征和高分辨率特征拼接,与latent vector做交叉Attention,得到融合的低分辨率和高分辨率表示
+    def initial_latents(self, low_tokens, high_tokens):
+        # shapes
+        BS = low_tokens.shape[0]
         
+        # concat all the tokens
+        concat_ = torch.cat((low_tokens,high_tokens),dim=1) # B, N+M, C
+        # cross attention (local -->> global latents)
+        fused_latents = self.attention(q=self.latents.expand(BS,-1,-1), k=concat_, v=concat_) # B, num_latents, C
+        return fused_latents
+    
+    def DRFF(self, low_tokens, high_tokens,fused_latents):
+        fused_latents = self.attention(q=fused_latents, k=low_tokens, v=low_tokens)
+        fused_latents = self.attention(q=fused_latents, k=high_tokens, v=high_tokens)
+        return fused_latents
+
+    
+    def forward(self, x, y, l=1):
+        z = self.initial_latents(x,y)
+        for _ in range(l):
+            z = self.DRFF(x,y,z)
+        return z
 
 """
 args:
@@ -67,7 +112,7 @@ args:
 """
 
 class MCBAT_SB(nn.Module):
-    def __init__(self, gate = True, size_arg = "small", depth = 1,  dropout = False, k_sample=8, n_classes=2,
+    def __init__(self, gate = True, size_arg = "small", depth = 3,  dropout = False, k_sample=8, n_classes=2,
         instance_loss_fn=nn.CrossEntropyLoss(), subtyping=False):
         super(MCBAT_SB, self).__init__()
 
@@ -88,7 +133,8 @@ class MCBAT_SB(nn.Module):
             attention_net = Attn_Net(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
         fc.append(attention_net)
         self.attention_net = nn.Sequential(*fc)
-        self.classifiers = nn.Linear(size[0], n_classes)
+        self.classifiers = nn.Linear(size[1], n_classes)
+        self.catclassifiers = nn.Linear(512*6, n_classes)
         instance_classifiers = [nn.Linear(size[1], 2) for i in range(n_classes)]
         self.instance_classifiers = nn.ModuleList(instance_classifiers)
 
@@ -97,8 +143,8 @@ class MCBAT_SB(nn.Module):
         ## self_add
         self.cls_token_low = nn.Parameter(torch.rand(1,1,size[1]))
         self.cls_token_high = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer_low  = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
-        self.transformer_high = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_low  = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer_high = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
@@ -107,7 +153,9 @@ class MCBAT_SB(nn.Module):
         #     encoder_layers.append(FusionEncoder(2))
         # self.fusion_encoder = nn.Sequential(*encoder_layers)
         # self.fusion_encoder = FusionEncoder(2, self.transformer_low, self.transformer_high)
-        self.fusion_encoder = FusionEncoder(2)
+        # self.fusion_encoder = FusionEncoder(4)
+        # self.fusion_encoder = FusionEncoder(4)
+        self.fusion_encoder = DRFF(4)
 
         # 这是用于计算注意力权重的两个线性层，输入是隐藏层表示H，输出经过激活函数处理后得到注意力的两个部分
         self.attention_V2 = nn.Sequential(
@@ -124,6 +172,7 @@ class MCBAT_SB(nn.Module):
         device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.attention_net = self.attention_net.to(device)
         self.classifiers = self.classifiers.to(device)
+        self.catclassifiers = self.catclassifiers.to(device)
         self.instance_classifiers = self.instance_classifiers.to(device)
         
         self.projector = self.projector.to(device)
@@ -291,12 +340,14 @@ class MCBAT_SB(nn.Module):
             ## forward respectively
             x, H_low, instance_feature_low = self.forward_low_scale(xs)
             y, H_high, instance_feature_high = self.forward_high_scale(ys)
-            
             # x,y,bottle_token = self.fusion_encoder(x,y,return_bottoken = True)
+            H_fuse = self.fusion_encoder(x,y,l=3)
 
             ## clam attention
             A, h = self.attention(instance_feature_high)
             A = torch.transpose(A, 1, 0)
+            if attention_only:
+                return A
             A_raw = A
             A = F.softmax(A, dim=1)
             if instance_eval:
@@ -324,26 +375,26 @@ class MCBAT_SB(nn.Module):
                     total_inst_loss /= len(self.instance_classifiers)
 
             ################################################################
-            # ----> 使用cls_token 进行分类
-
-            # logits_t = self.classifiers(H)
-            # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
-            # Y_prob_t = F.softmax(logits_t, dim = 1)
+            # ----> 之前实验用的
             # x = x[:, 0]
             # y = y[:, 0]
             # H = (x+y)*0.5
-
+            ################################################################
+            # ----> cat low&high
+            # H = torch.cat((H_high, H_low))
+            # H = H.unsqueeze(0)
+            ################################################################
+            # ---->> 使用cls_token 和 bot_token 一起进行分类
+            H_fuse = H_fuse.squeeze(0)
+            H_low = H_low.unsqueeze(0)
+            H_high = H_high.unsqueeze(0)
             H = torch.cat((H_high, H_low))
-            H = H.unsqueeze(0)
-            logits_t = self.classifiers(H)
+            H = torch.cat((H_fuse, H))
+            H = torch.flatten(H).unsqueeze(0)
+            logits_t = self.catclassifiers(H)
             Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             Y_prob_t = F.softmax(logits_t, dim = 1)
-            ################################################################
-            # # ---->> 使用cls_token 和 bot_token 一起进行分类
-            # H = torch.cat((H_low, bottle_token, H_high), dim=1)
-            # logits_t = self.xlassifiers(H)
-            # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
-            # Y_prob_t = F.softmax(logits_t, dim = 1)
+            
             ################################################################
             ## 使用原来的AttentionMIL进行分类
             # M = torch.mm(A, h) 
