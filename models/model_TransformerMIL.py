@@ -348,7 +348,7 @@ class TransformerMIL_SB(nn.Module):
         ################################################################
         ## self_add
         self.cls_token = nn.Parameter(torch.rand(1,1,size[1]))
-        self.transformer = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
+        self.transformer = TransformerEncoder_FLASH(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
         self.projector = nn.Linear(1024, size[1])
         self.dropout = nn.Dropout(0.1)
         self.attention = Attn_Net_Gated(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
@@ -586,13 +586,13 @@ class TransformerMIL_SB(nn.Module):
                     total_inst_loss /= len(self.instance_classifiers)
 
             # ################################################################
-            # # ----> 使用cls_token 进行分类
-            # print(H.size())
-            # H = H.unsqueeze(0)
-            # logits_t = self.classifiers(H)
-            # print(logits_t.size())
-            # Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
-            # Y_prob_t = F.softmax(logits_t, dim = 1)
+            # ----> 使用cls_token 进行分类
+            print(H.size())
+            H = H.unsqueeze(0)
+            logits_t = self.classifiers(H)
+            print(logits_t.size())
+            Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
+            Y_prob_t = F.softmax(logits_t, dim = 1)
             ################################################################
             ## 使用原来的AttentionMIL进行分类
             # M = torch.mm(A, h) 

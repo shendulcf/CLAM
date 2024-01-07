@@ -67,7 +67,7 @@ args:
 """
 
 class MCBAT_SB(nn.Module):
-    def __init__(self, gate = True, size_arg = "small", depth = 1,  dropout = False, k_sample=8, n_classes=2, num_latents=4,
+    def __init__(self, gate = True, size_arg = "small", depth = 1,  dropout = False, k_sample=8, n_classes=2, num_latents=2, num_layers=3,
         instance_loss_fn=nn.CrossEntropyLoss(), subtyping=False):
         super(MCBAT_SB, self).__init__()
 
@@ -88,7 +88,7 @@ class MCBAT_SB(nn.Module):
             attention_net = Attn_Net(L = size[1], D = size[2], dropout = dropout, n_classes = 1)
         fc.append(attention_net)
         self.attention_net = nn.Sequential(*fc)
-        self.classifiers = nn.Linear(size[0], n_classes)
+        self.classifiers = nn.Linear(size[1] * num_latents, n_classes)
         instance_classifiers = [nn.Linear(size[1], 2) for i in range(n_classes)]
         self.instance_classifiers = nn.ModuleList(instance_classifiers)
 
@@ -98,7 +98,8 @@ class MCBAT_SB(nn.Module):
         self.cls_token_low = nn.Parameter(torch.rand(1,1,size[1]))
         self.cls_token_high = nn.Parameter(torch.rand(1,1,size[1]))
 
-        self.num_latents = int(num_latents)
+        self.num_latents = num_latents
+        self.num_layers = num_layers
         self.latents = nn.Parameter(torch.empty(1, num_latents, 512).normal_(std=0.02))
 
         self.transformer_low  = TransformerEncoder_FLASHAttention(size[1], depth, 8, 64, 2048, 0.1) # mlp_dim = 2048 一般取4*dim增强模型的表达能力
@@ -111,7 +112,7 @@ class MCBAT_SB(nn.Module):
         #     encoder_layers.append(FusionEncoder(2))
         # self.fusion_encoder = nn.Sequential(*encoder_layers)
         # self.fusion_encoder = FusionEncoder(2, self.transformer_low, self.transformer_high)
-        self.fusion_encoder = FusionEncoder(2)
+        # self.fusion_encoder = FusionEncoder(2)
 
         # 这是用于计算注意力权重的两个线性层，输入是隐藏层表示H，输出经过激活函数处理后得到注意力的两个部分
         self.attention_V2 = nn.Sequential(
@@ -139,7 +140,7 @@ class MCBAT_SB(nn.Module):
         self.attention_V2 = self.attention_V2.to(device)
         self.attention_U2 = self.attention_U2.to(device)
         self.attention_weights2 =  self.attention_weights2.to(device)
-        self.fusion_encoder = self.fusion_encoder.to(device)
+        # self.fusion_encoder = self.fusion_encoder.to(device)
     
     @staticmethod
     def create_positive_targets(length, device):
@@ -306,20 +307,34 @@ class MCBAT_SB(nn.Module):
 
             rep = self.transformer_low(x) # b,n,(h,d) --> b,n,dim --> b,n, mlp_dim --> b,n,dim
             rep = rep.squeeze(0)
-            self.latents = rep[:self.num_latents]
+            H = rep[:self.num_latents]
+            H = H.unsqueeze(0)
             instance_feature_low = rep[self.num_latents:]
 
             y = ys.unsqueeze(0)
-            y = self.projector(x)
-            y = torch.cat((self.latents, y.cpu()), dim=1)
+            y = self.projector(y)
+            y = torch.cat((H, y), dim=1)
             y = y.to(device)
             y = self.dropout(y)
 
             rep2 = self.transformer_high(y)
             rep2 = rep.squeeze()
-            self.latents = rep2[:self.num_latents]
+            H = rep2[:self.num_latents].unsqueeze(0)
             instance_feature_high = rep2[self.num_latents:]
-            
+            if self.num_layers > 1:
+                for i in range(self.num_layers-1):
+                    x = torch.cat((H, x), dim=1)
+                    rep = self.transformer_low(x)
+                    rep = rep.squeeze(0)
+                    H = rep[:self.num_latents]
+                    H = H.unsqueeze(0)
+                    y = torch.cat((H, y), dim=1)
+                    rep2 = self.transformer_high(y)
+                    rep2 = rep2.squeeze(0)
+                    H = rep2[:self.num_latents].unsqueeze(0)
+                   
+                instance_feature_high = rep2[self.num_latents:]
+
 
             ## clam attention
             A, h = self.attention(instance_feature_high)
@@ -359,8 +374,9 @@ class MCBAT_SB(nn.Module):
             # x = x[:, 0]
             # y = y[:, 0]
             # H = (x+y)*0.5
-            self.latents = torch.cat(self.latents)
-            logits_t = self.classifiers(self.latents)
+            H =  H.squeeze(0)
+            H = torch.flatten(H).unsqueeze(0)
+            logits_t = self.classifiers(H)
 
             Y_hat_t = torch.topk(logits_t, 1, dim=1)[1]
             Y_prob_t = F.softmax(logits_t, dim = 1)
