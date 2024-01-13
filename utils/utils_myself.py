@@ -76,13 +76,7 @@ def get_split_loader(split_dataset, training = False, testing = False, weighted 
 
 #6 ----> 用于计算用于平衡类别的样本权重
 def make_weights_for_balanced_classes_split(dataset):
-	N = float(len(dataset)) 
-	print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-	print(N)
-	print(f'{len(dataset.slide_cls_ids)}')
-	print(f'{len(dataset.slide_cls_ids[0])}')
-	print(f'{len(dataset.slide_cls_ids[1])}')
-	print('##################################################')                                          
+	N = float(len(dataset))                                           
 	weight_per_class = [N/len(dataset.slide_cls_ids[c]) for c in range(len(dataset.slide_cls_ids))]                                                                                                     
 	weight = [0] * int(N)                                           
 	for idx in range(len(dataset)):   
